@@ -1,0 +1,17 @@
+audio_path,label,speaker_id,dataset,attack_type,duration
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_003\spk_003_bonafide_01.wav,bonafide,spk_003,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_003\spk_003_bonafide_03.wav,bonafide,spk_003,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_003\spk_003_spoof_02.wav,spoof,spk_003,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_003\spk_003_spoof_04.wav,spoof,spk_003,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_004\spk_004_bonafide_01.wav,bonafide,spk_004,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_004\spk_004_bonafide_03.wav,bonafide,spk_004,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_004\spk_004_spoof_02.wav,spoof,spk_004,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_004\spk_004_spoof_04.wav,spoof,spk_004,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_005\spk_005_bonafide_01.wav,bonafide,spk_005,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_005\spk_005_bonafide_03.wav,bonafide,spk_005,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_005\spk_005_spoof_02.wav,spoof,spk_005,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_005\spk_005_spoof_04.wav,spoof,spk_005,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_002\spk_002_bonafide_01.wav,bonafide,spk_002,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_002\spk_002_bonafide_03.wav,bonafide,spk_002,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_002\spk_002_spoof_02.wav,spoof,spk_002,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_002\spk_002_spoof_04.wav,spoof,spk_002,datasets,AI_CLONE,4.0

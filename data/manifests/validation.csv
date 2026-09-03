@@ -1,0 +1,5 @@
+audio_path,label,speaker_id,dataset,attack_type,duration
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_001\spk_001_bonafide_01.wav,bonafide,spk_001,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_001\spk_001_bonafide_03.wav,bonafide,spk_001,datasets,-,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_001\spk_001_spoof_02.wav,spoof,spk_001,datasets,AI_CLONE,4.0
+C:\Users\Tamilarasi A\OneDrive\Desktop\VOICESHIELD - SIH\datasets\spk_001\spk_001_spoof_04.wav,spoof,spk_001,datasets,AI_CLONE,4.0

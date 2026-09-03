@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "status": "PREPARED",
+  "dataset_dir": "C:\\Users\\Tamilarasi A\\OneDrive\\Desktop\\VOICESHIELD - SIH\\datasets",
+  "manifest_dir": "C:\\Users\\Tamilarasi A\\OneDrive\\Desktop\\VOICESHIELD - SIH\\data\\manifests",
+  "manifest_paths": {
+    "train": "./data/manifests\\train.csv",
+    "validation": "./data/manifests\\validation.csv",
+    "test": "./data/manifests\\test.csv"
+  },
+  "split_stats": {
+    "total_speakers": 6,
+    "train_speakers_count": 4,
+    "val_speakers_count": 1,
+    "test_speakers_count": 1,
+    "train_samples_count": 16,
+    "val_samples_count": 4,
+    "test_samples_count": 4,
+    "train_bonafide": 8,
+    "train_spoof": 8,
+    "val_bonafide": 2,
+    "val_spoof": 2,
+    "test_bonafide": 2,
+    "test_spoof": 2,
+    "speaker_leakage_detected": false
+  },
+  "validation_report": {
+    "total_files": 24,
+    "corrupted_files": 0
+  }
+}

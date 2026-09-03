@@ -1,0 +1,113 @@
+{
+  "model_name": "AASIST",
+  "model_version": "1.0",
+  "best_epoch": 1,
+  "best_f1": 0.0,
+  "best_eer": 0.0,
+  "best_metrics": {
+    "accuracy": 0.5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": 1.0,
+    "eer": 0.0,
+    "eer_threshold": 0.4714,
+    "fpr": 0.0,
+    "fnr": 1.0,
+    "threshold": 0.5,
+    "total_samples": 4,
+    "bonafide_count": 2,
+    "spoof_count": 2,
+    "confusion_matrix": {
+      "tn": 2,
+      "fp": 0,
+      "fn": 2,
+      "tp": 0
+    }
+  },
+  "training_history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.7,
+      "train_acc": 0.5,
+      "val_loss": 0.6944,
+      "val_accuracy": 0.5,
+      "val_precision": 0.0,
+      "val_recall": 0.0,
+      "val_f1": 0.0,
+      "val_eer": 0.0,
+      "epoch_time_sec": 150.43
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.582,
+      "train_acc": 0.75,
+      "val_loss": 0.7112,
+      "val_accuracy": 0.5,
+      "val_precision": 0.0,
+      "val_recall": 0.0,
+      "val_f1": 0.0,
+      "val_eer": 0.0,
+      "epoch_time_sec": 141.54
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.5383,
+      "train_acc": 0.9375,
+      "val_loss": 0.7651,
+      "val_accuracy": 0.5,
+      "val_precision": 0.0,
+      "val_recall": 0.0,
+      "val_f1": 0.0,
+      "val_eer": 0.0,
+      "epoch_time_sec": 130.77
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.4925,
+      "train_acc": 1.0,
+      "val_loss": 0.8603,
+      "val_accuracy": 0.5,
+      "val_precision": 0.0,
+      "val_recall": 0.0,
+      "val_f1": 0.0,
+      "val_eer": 0.0,
+      "epoch_time_sec": 119.63
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.3176,
+      "train_acc": 1.0,
+      "val_loss": 0.9928,
+      "val_accuracy": 0.5,
+      "val_precision": 0.0,
+      "val_recall": 0.0,
+      "val_f1": 0.0,
+      "val_eer": 0.0,
+      "epoch_time_sec": 95.96
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.3073,
+      "train_acc": 1.0,
+      "val_loss": 1.0595,
+      "val_accuracy": 0.5,
+      "val_precision": 0.0,
+      "val_recall": 0.0,
+      "val_f1": 0.0,
+      "val_eer": 0.0,
+      "epoch_time_sec": 99.78
+    }
+  ],
+  "hardware": {
+    "device": "cpu",
+    "device_label": "CPU fallback",
+    "gpu_name": null,
+    "gpu_count": 0,
+    "cuda_version": null,
+    "is_gpu_available": false
+  },
+  "train_samples": 16,
+  "val_samples": 4,
+  "saved_checkpoint": "./checkpoints\\best_model.pth"
+}

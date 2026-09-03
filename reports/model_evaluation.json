@@ -1,0 +1,37 @@
+{
+  "model": {
+    "name": "AASIST",
+    "version": "1.0",
+    "parameters": 0,
+    "checkpoint": "best_model.pth"
+  },
+  "dataset": {
+    "test_manifest": "C:\\Users\\Tamilarasi A\\OneDrive\\Desktop\\VOICESHIELD - SIH\\data\\manifests\\test.csv",
+    "test_samples": 4
+  },
+  "metrics": {
+    "accuracy": 0.5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "roc_auc": 0.0,
+    "eer": 1.0,
+    "eer_threshold": 0.4849,
+    "fpr": 0.0,
+    "fnr": 1.0
+  },
+  "confusion_matrix": {
+    "tn": 2,
+    "fp": 0,
+    "fn": 2,
+    "tp": 0
+  },
+  "thresholds": {
+    "classification_threshold": 0.5,
+    "uncertainty_range": [
+      0.45,
+      0.55
+    ]
+  },
+  "generated_at": "N/A"
+}
