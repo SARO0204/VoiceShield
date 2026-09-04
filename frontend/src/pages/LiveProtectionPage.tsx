@@ -11,7 +11,7 @@ import {
 import { AudioWaveform } from "../components/common/AudioWaveform";
 import { RiskBadge } from "../components/common/RiskBadge";
 import { EmergencyAlertModal } from "../components/common/EmergencyAlertModal";
-import { getBackendWebSocketUrl } from "../services/api";
+import { api, getBackendWebSocketUrl } from "../services/api";
 
 interface TimelineEvent {
   time: string;
@@ -23,6 +23,7 @@ interface TimelineEvent {
 export const LiveProtectionPage: React.FC = () => {
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Live Metrics
   const [aiProbability, setAiProbability] = useState(0.0);
@@ -71,6 +72,7 @@ export const LiveProtectionPage: React.FC = () => {
 
   // Start Real Microphone Monitoring
   const startMonitoring = async () => {
+    setConnectionError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -94,6 +96,7 @@ export const LiveProtectionPage: React.FC = () => {
 
       ws.onopen = () => {
         setIsMonitoring(true);
+        setConnectionError(null);
         addEvent(
           "Microphone connected. Live WebSocket stream established with AASIST model.",
           "SAFE",
@@ -153,7 +156,34 @@ export const LiveProtectionPage: React.FC = () => {
 
       ws.onerror = (e) => {
         console.error("WS error", e);
+        setConnectionError(
+          "WebSocket connection failed. Check the live stream service.",
+        );
+        setIsMonitoring(false);
+        if (processorRef.current) {
+          processorRef.current.disconnect();
+          processorRef.current = null;
+        }
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+          mediaStreamRef.current = null;
+        }
         addEvent("WebSocket connection encountered an error.", "WARNING");
+      };
+
+      ws.onclose = () => {
+        if (wsRef.current === ws) {
+          wsRef.current = null;
+          setIsMonitoring(false);
+          addEvent(
+            "Live WebSocket stream disconnected. Retry when ready.",
+            "WARNING",
+          );
+        }
       };
 
       let buffer: Float32Array[] = [];
@@ -193,6 +223,13 @@ export const LiveProtectionPage: React.FC = () => {
       processor.connect(audioCtx.destination);
     } catch (err) {
       console.error("Microphone access denied", err);
+      setConnectionError(
+        err instanceof DOMException &&
+          (err.name === "NotAllowedError" ||
+            err.name === "PermissionDeniedError")
+          ? "Microphone permission is required for live monitoring."
+          : "Microphone is unavailable on this device.",
+      );
       addEvent(
         "Microphone permission denied or device unavailable.",
         "CRITICAL",
@@ -229,95 +266,41 @@ export const LiveProtectionPage: React.FC = () => {
   };
 
   // Run Realistic Simulation (Simulated Voice-Cloning Scam Call Flow)
-  const runSimulatedScamCall = () => {
+  const runSimulatedScamCall = async () => {
     stopMonitoring();
+    setConnectionError(null);
     setIsSimulating(true);
-    setIsMonitoring(true);
-
     addEvent(
-      '19:42:01 Simulated incoming call session initiated ("Grandson Emergency Claim")',
+      "Submitting simulated call to the real analysis pipeline...",
       "INFO",
     );
-
-    let step = 0;
-    simulationTimerRef.current = setInterval(() => {
-      step++;
-
-      if (step === 1) {
-        // Step 1: Normal voice onset
-        setWaveformSamples(
-          Array.from({ length: 64 }, () => (Math.random() - 0.5) * 0.4),
-        );
-        setAiProbability(0.24);
-        setGenuineProbability(0.76);
-        setClassification("GENUINE");
-        setRiskScore(18);
-        setRiskLevel("LOW");
-        setInferenceLatency(42.5);
-        addEvent(
-          "19:42:03 Voice analysis started. Initial acoustic features extracted.",
-          "SAFE",
-        );
-      } else if (step === 2) {
-        // Step 2: Synthetic clone onset
-        setWaveformSamples(
-          Array.from({ length: 64 }, () => (Math.random() - 0.5) * 0.7),
-        );
-        setAiProbability(0.74);
-        setGenuineProbability(0.26);
-        setClassification("SYNTHETIC");
-        setRiskScore(58);
-        setRiskLevel("MEDIUM");
-        setInferenceLatency(48.2);
-        addEvent(
-          "19:42:07 Synthetic probability increased to 74% (Neural vocoder pitch anomaly).",
-          "WARNING",
-          58,
-        );
-      } else if (step === 3) {
-        // Step 3: Scam context trigger (Financial Demand)
-        setWaveformSamples(
-          Array.from({ length: 64 }, () => (Math.random() - 0.5) * 0.85),
-        );
-        setAiProbability(0.89);
-        setGenuineProbability(0.11);
-        setClassification("SYNTHETIC");
-        setDetectedIndicators([
-          "financial_request",
-          "emergency_distress",
-          "urgency_pressure",
-        ]);
-        setRiskScore(84);
-        setRiskLevel("CRITICAL");
-        setInferenceLatency(51.0);
-        addEvent(
-          '19:42:10 Financial request detected: "Send ₹50,000 immediately, in trouble with police"',
-          "CRITICAL",
-          84,
-        );
-      } else if (step === 4) {
-        // Step 4: Critical Escalation & Trigger Alert Modal
-        setRiskScore(94);
-        setRiskLevel("CRITICAL");
-        addEvent(
-          "19:42:12 Multi-factor risk escalated to 94/100 (CRITICAL THREAT)",
-          "CRITICAL",
-          94,
-        );
-        addEvent(
-          "19:42:15 Identity verification recommended. Directives dispatched to caller.",
-          "CRITICAL",
-        );
-        setAlertReasons([
-          "High synthetic speech probability (89% likelihood of AI voice cloning)",
-          "Financial demand detected (Urgent transfer request)",
-          'Emergency coercion detected ("In trouble, don\'t tell anyone")',
-          "Caller identity unverified through out-of-band challenge",
-        ]);
+    try {
+      const result = await api.simulateScamCall();
+      const { analysis, alert } = result;
+      setAiProbability(analysis.prediction.ai_probability);
+      setGenuineProbability(analysis.prediction.genuine_probability);
+      setClassification(analysis.prediction.classification);
+      setRiskScore(analysis.risk.score);
+      setRiskLevel(analysis.risk.level);
+      setDetectedIndicators(analysis.scam_context.detected_patterns || []);
+      setInferenceLatency(analysis.performance?.avg_inference_latency_ms || 0);
+      addEvent(
+        `Real model result: ${analysis.prediction.classification}, risk ${analysis.risk.score}/100.`,
+        analysis.risk.level === "LOW" ? "SAFE" : "WARNING",
+        analysis.risk.score,
+      );
+      if (alert) {
+        setAlertReasons(analysis.explanation || []);
         setShowAlertModal(true);
-        clearInterval(simulationTimerRef.current);
       }
-    }, 2400);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Scam call simulation failed.";
+      setConnectionError(message);
+      addEvent(message, "CRITICAL");
+    } finally {
+      setIsSimulating(false);
+    }
   };
 
   useEffect(() => {
@@ -343,6 +326,12 @@ export const LiveProtectionPage: React.FC = () => {
             phrase detection, and instant critical fraud mitigation.
           </p>
         </div>
+
+        {connectionError && (
+          <div className="text-xs font-mono text-rose-400">
+            {connectionError}
+          </div>
+        )}
 
         {/* Action Controls */}
         <div className="flex items-center gap-3">

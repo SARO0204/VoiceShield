@@ -55,6 +55,12 @@ export const AnalyticsPage: React.FC = () => {
       <div className="flex items-center justify-center h-[70vh]">
         <div className="text-center text-sm font-mono text-rose-400">
           {error || "Attack analytics are unavailable."}
+          <button
+            className="block mx-auto mt-3 text-cyan-400 underline"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
         </div>
       </div>
     );

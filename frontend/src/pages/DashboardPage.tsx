@@ -19,6 +19,7 @@ interface DashboardPageProps {
   data: DashboardSummary | null;
   isLoading: boolean;
   errorMessage?: string | null;
+  onRetry?: () => void;
   onNavigate: (tab: string) => void;
 }
 
@@ -26,6 +27,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   data,
   isLoading,
   errorMessage,
+  onRetry,
   onNavigate,
 }) => {
   if (isLoading) {
@@ -46,6 +48,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <div className="flex items-center justify-center h-[70vh]">
         <div className="text-center text-sm font-mono text-rose-400">
           {errorMessage || "Dashboard data is unavailable."}
+          {onRetry && (
+            <button
+              className="block mx-auto mt-3 text-cyan-400 underline"
+              onClick={onRetry}
+            >
+              Retry
+            </button>
+          )}
         </div>
       </div>
     );

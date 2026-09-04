@@ -1,6 +1,14 @@
-export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-export type ClassificationType = 'GENUINE' | 'SYNTHETIC' | 'UNCERTAIN' | 'MODEL_UNAVAILABLE';
-export type ModelModeType = 'TRAINED_INFERENCE' | 'PRETRAINED_INFERENCE' | 'DEMO' | 'MODEL_UNAVAILABLE';
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type ClassificationType =
+  | "GENUINE"
+  | "SYNTHETIC"
+  | "UNCERTAIN"
+  | "MODEL_UNAVAILABLE";
+export type ModelModeType =
+  | "TRAINED_INFERENCE"
+  | "PRETRAINED_INFERENCE"
+  | "DEMO"
+  | "MODEL_UNAVAILABLE";
 
 export interface ModelInfo {
   name: string;
@@ -54,6 +62,7 @@ export interface AnalysisRecord {
     financial_request: boolean;
     urgency: boolean;
     credential_request: boolean;
+    detected_patterns?: string[];
     secrecy_coercion?: boolean;
     impersonation?: boolean;
     matched_excerpts?: string[];
@@ -80,7 +89,7 @@ export interface CallRecord {
   risk_level: RiskLevel;
   overall_classification: ClassificationType;
   analysis_count: number;
-  status: 'ACTIVE' | 'COMPLETED' | 'BLOCKED' | 'FLAGGED';
+  status: "ACTIVE" | "COMPLETED" | "BLOCKED" | "FLAGGED";
   transcript?: string;
   verification_status: string;
 }
@@ -90,7 +99,7 @@ export interface AlertRecord {
   user_id: string;
   call_id?: string;
   analysis_id?: string;
-  severity: RiskLevel | 'INFO';
+  severity: RiskLevel | "INFO";
   title: string;
   message: string;
   ai_probability: number;
@@ -152,7 +161,15 @@ export interface SystemStatus {
 }
 
 export interface TrainingState {
-  status: 'NOT_STARTED' | 'PREPARING_DATA' | 'TRAINING' | 'VALIDATING' | 'EVALUATING' | 'COMPLETED' | 'FAILED' | 'NO_DATASET';
+  status:
+    | "NOT_STARTED"
+    | "PREPARING_DATA"
+    | "TRAINING"
+    | "VALIDATING"
+    | "EVALUATING"
+    | "COMPLETED"
+    | "FAILED"
+    | "NO_DATASET";
   current_epoch: number;
   total_epochs: number;
   progress_percent: number;

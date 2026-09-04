@@ -22,22 +22,41 @@ async function request(
   init: RequestInit = {},
   timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  const attempts = !init.method || init.method.toUpperCase() === "GET" ? 2 : 1;
+  let lastError: unknown;
 
-  try {
-    return await fetch(`${API_BASE}${path}`, {
-      ...init,
-      signal: controller.signal,
-    });
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(`Request timed out after ${timeoutMs / 1000} seconds`);
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const attemptTimeoutMs = timeoutMs * (attempt + 1);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(
+      () => controller.abort(),
+      attemptTimeoutMs,
+    );
+    try {
+      const response = await fetch(`${API_BASE}${path}`, {
+        ...init,
+        signal: controller.signal,
+      });
+      if (response.status < 500 || attempt === attempts - 1) return response;
+      lastError = new Error(`Backend returned HTTP ${response.status}`);
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts - 1) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          throw new Error(
+            `Request timed out after ${attemptTimeoutMs / 1000} seconds`,
+          );
+        }
+        throw new Error("Unable to reach the VoiceShield backend");
+      }
+    } finally {
+      window.clearTimeout(timeoutId);
     }
-    throw new Error("Unable to reach the VoiceShield backend");
-  } finally {
-    window.clearTimeout(timeoutId);
   }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Unable to reach the VoiceShield backend");
 }
 
 export function getBackendWebSocketUrl(path: string): string {
@@ -137,6 +156,23 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || "Audio analysis failed");
+    }
+    return res.json();
+  },
+
+  async simulateScamCall(): Promise<{
+    analysis: AnalysisRecord;
+    call: CallRecord;
+    alert: AlertRecord | null;
+  }> {
+    const res = await request(
+      `/simulate`,
+      { method: "POST", headers: getAuthHeader() },
+      ANALYSIS_REQUEST_TIMEOUT_MS,
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Scam call simulation failed");
     }
     return res.json();
   },

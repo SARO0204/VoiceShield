@@ -164,15 +164,21 @@ class GraphAttentionLayer(nn.Module):
         B, N, _ = h.shape
         Wh = self.W(h)  # (B, N, out_features)
 
-        # Self-attention pairwise combination
-        Wh_repeated_1 = Wh.unsqueeze(2).repeat(1, 1, N, 1)  # (B, N, N, out_features)
-        Wh_repeated_2 = Wh.unsqueeze(1).repeat(1, N, 1, 1)  # (B, N, N, out_features)
-        all_combinations = torch.cat([Wh_repeated_1, Wh_repeated_2], dim=-1)  # (B, N, N, 2 * out_features)
+        # Preserve pairwise additive attention while bounding its peak memory use.
+        query_chunk_size = 64
+        output_chunks = []
+        keys = Wh.unsqueeze(1)
+        for start in range(0, N, query_chunk_size):
+            queries = Wh[:, start : start + query_chunk_size].unsqueeze(2)
+            all_combinations = torch.cat(
+                [queries.expand(-1, -1, N, -1), keys.expand(-1, queries.shape[1], -1, -1)],
+                dim=-1,
+            )
+            scores = self.leakyrelu(self.a(all_combinations).squeeze(-1))
+            attention = F.softmax(scores, dim=-1)
+            output_chunks.append(torch.bmm(attention, Wh))
 
-        e = self.leakyrelu(self.a(all_combinations).squeeze(-1))  # (B, N, N)
-        attention = F.softmax(e, dim=-1)
-
-        h_prime = torch.bmm(attention, Wh)  # (B, N, out_features)
+        h_prime = torch.cat(output_chunks, dim=1)
         return F.elu(h_prime)
 
 

@@ -85,6 +85,10 @@ export const App: React.FC = () => {
               data={dashboardData}
               isLoading={loadingDashboard}
               errorMessage={dashboardError}
+              onRetry={() => {
+                setLoadingDashboard(true);
+                loadData();
+              }}
               onNavigate={setActiveTab}
             />
           )}

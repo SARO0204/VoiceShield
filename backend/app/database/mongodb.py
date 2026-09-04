@@ -25,10 +25,13 @@ class Database:
     async def connect(self):
         """Initializes connection to MongoDB and creates optimal indexes."""
         try:
-            logger.info(f"Connecting to MongoDB at: {settings.MONGODB_URI} (db: {settings.DATABASE_NAME})...")
+            logger.info("Connecting to MongoDB database '%s'...", settings.DATABASE_NAME)
             self.client = motor.motor_asyncio.AsyncIOMotorClient(
                 settings.MONGODB_URI,
                 serverSelectionTimeoutMS=3000,
+                connectTimeoutMS=3000,
+                socketTimeoutMS=10000,
+                waitQueueTimeoutMS=5000,
             )
             # Verify server connection
             await self.client.admin.command("ping")
@@ -41,6 +44,10 @@ class Database:
 
         except Exception as e:
             self.is_connected = False
+            if self.client:
+                self.client.close()
+            self.client = None
+            self.db = None
             logger.warning(f"MongoDB connection ping failed ({e}). Database queries will operate in graceful fallback mode.")
 
     async def _init_indexes(self):

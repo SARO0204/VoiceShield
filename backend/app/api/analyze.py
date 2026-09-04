@@ -18,6 +18,7 @@ from backend.app.services.risk_engine import RiskEngine
 from backend.app.services.explainability_service import ExplainabilityService
 from backend.app.services.privacy_service import PrivacyService
 from backend.app.database.mongodb import db
+from backend.app.core.config import settings
 from ml.inference.inference_service import InferenceService
 
 logger = logging.getLogger("voiceshield.api.analyze")
@@ -33,6 +34,90 @@ privacy_service = PrivacyService()
 _in_memory_analyses = []
 _in_memory_calls = []
 _in_memory_alerts = []
+
+
+@router.post("/simulate")
+async def simulate_scam_call(user: dict = Depends(get_current_user)):
+    """Runs the real model against a bundled sample and persists a test call."""
+    sample_path = os.path.join(settings.DATASET_DIR, "spk_001", "spk_001_spoof_02.wav")
+    if not os.path.exists(sample_path):
+        raise HTTPException(status_code=503, detail="Simulation sample is unavailable in this deployment.")
+
+    try:
+        inference = inference_service.analyze_audio_stream(sample_path)
+        prediction = inference["prediction"]
+        scam_data = scam_service.analyze_transcript(
+            transcript="Send money immediately. I am in trouble with police. Tell no one and share the OTP.",
+        )
+        risk_result = risk_engine.calculate_risk(
+            ai_probability=prediction["ai_probability"],
+            model_confidence=prediction["confidence"],
+            scam_context_score=scam_data["score"],
+            scam_indicators=scam_data["indicators"],
+            verification_status="UNVERIFIED",
+            duration_sec=inference["audio_metadata"]["duration_sec"],
+        )
+        explanation = explain_service.generate_explanation(
+            ai_probability=prediction["ai_probability"],
+            classification=prediction["classification"],
+            scam_context=scam_data,
+            risk_data=risk_result,
+        )
+        now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        user_id = str(user.get("id", "default_user"))
+        analysis_id = f"ana_{uuid.uuid4().hex[:10]}"
+        call_id = f"call_{uuid.uuid4().hex[:8]}"
+        caller_label = "Simulated Grandson / Unknown Caller"
+        analysis_doc = {
+            "id": analysis_id, "user_id": user_id, "call_id": call_id,
+            "caller_label": caller_label, "timestamp": now_iso,
+            "audio_duration_sec": inference["audio_metadata"]["duration_sec"],
+            "audio_filename": os.path.basename(sample_path), "model": inference["model"],
+            "prediction": prediction, "risk": risk_result, "scam_context": scam_data,
+            "explanation": explanation["summary_reasons"],
+            "evidence_tags": explanation["evidence_tags"], "disclaimer": explanation["disclaimer"],
+            "verification_status": "UNVERIFIED", "chunks": inference["chunks"],
+            "performance": inference["performance"],
+        }
+        call_doc = {
+            "id": call_id, "user_id": user_id, "caller_label": caller_label,
+            "started_at": now_iso, "ended_at": now_iso,
+            "duration_sec": inference["audio_metadata"]["duration_sec"],
+            "overall_risk": risk_result["score"], "risk_level": risk_result["level"],
+            "overall_classification": prediction["classification"], "analysis_count": 1,
+            "status": "FLAGGED" if risk_result["level"] in ["HIGH", "CRITICAL"] else "COMPLETED",
+            "transcript": scam_data["transcript"], "verification_status": "UNVERIFIED",
+        }
+        alert_doc = None
+        if risk_result["level"] in ["HIGH", "CRITICAL"]:
+            alert_doc = {
+                "id": f"alt_{uuid.uuid4().hex[:8]}", "user_id": user_id,
+                "call_id": call_id, "analysis_id": analysis_id,
+                "severity": risk_result["level"], "title": "Potential Voice Scam Detected",
+                "message": "Simulated call flagged by the real audio and scam risk pipeline.",
+                "ai_probability": prediction["ai_probability"], "risk_score": risk_result["score"],
+                "reasons": explanation["summary_reasons"], "created_at": now_iso,
+                "resolved": False,
+            }
+        if db.is_connected and db.db is not None:
+            await db.db.analyses.insert_one(analysis_doc)
+            await db.db.calls.insert_one(call_doc)
+            if alert_doc:
+                await db.db.alerts.insert_one(alert_doc)
+        analysis_doc.pop("_id", None)
+        call_doc.pop("_id", None)
+        if alert_doc:
+            alert_doc.pop("_id", None)
+        _in_memory_analyses.insert(0, analysis_doc)
+        _in_memory_calls.insert(0, call_doc)
+        if alert_doc:
+            _in_memory_alerts.insert(0, alert_doc)
+        return {"analysis": analysis_doc, "call": call_doc, "alert": alert_doc}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Simulation pipeline error: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Simulation pipeline error: {e}")
 
 
 @router.post("/analyze")
