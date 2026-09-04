@@ -183,7 +183,7 @@ class ModelManager:
 
         waveform = waveform.to(self.device)
 
-        with self._inference_lock, torch.no_grad():
+        with self._inference_lock, torch.inference_mode():
             logits = self.model(waveform)
             probs = torch.softmax(logits, dim=-1).squeeze(0).cpu().numpy()
 
