@@ -1,24 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { PhoneCall, Search, Activity, ArrowLeft, FileText, FileDown, RefreshCw } from 'lucide-react';
-import { api } from '../services/api';
-import type { CallRecord, AnalysisRecord } from '../types';
-import { RiskBadge } from '../components/common/RiskBadge';
+import React, { useState, useEffect } from "react";
+import {
+  PhoneCall,
+  Search,
+  Activity,
+  ArrowLeft,
+  FileText,
+  FileDown,
+  RefreshCw,
+} from "lucide-react";
+import { api } from "../services/api";
+import type { CallRecord, AnalysisRecord } from "../types";
+import { RiskBadge } from "../components/common/RiskBadge";
 
 export const CallMonitorPage: React.FC = () => {
   const [calls, setCalls] = useState<CallRecord[]>([]);
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
-  const [callDetail, setCallDetail] = useState<{ call: CallRecord; analyses: AnalysisRecord[]; timeline_events: any[] } | null>(null);
+  const [callDetail, setCallDetail] = useState<{
+    call: CallRecord;
+    analyses: AnalysisRecord[];
+    timeline_events: any[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchCalls = async () => {
     setLoading(true);
     try {
       const res = await api.getCalls(50);
       setCalls(res.items);
+      setError(null);
     } catch (e) {
-      console.error(e);
+      const message =
+        e instanceof Error ? e.message : "Call records are unavailable.";
+      setError(message);
+      console.error("Error fetching calls:", e);
     } finally {
       setLoading(false);
     }
@@ -30,22 +48,26 @@ export const CallMonitorPage: React.FC = () => {
 
   const openCallDetail = async (callId: string) => {
     setSelectedCallId(callId);
+    setDetailError(null);
     try {
       const detail = await api.getCallDetail(callId);
       setCallDetail(detail);
     } catch (e) {
-      console.error(e);
+      const message =
+        e instanceof Error ? e.message : "Call details are unavailable.";
+      setDetailError(message);
+      console.error("Error fetching call details:", e);
     }
   };
 
-  const filteredCalls = calls.filter((c) =>
-    c.caller_label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.id.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCalls = calls.filter(
+    (c) =>
+      c.caller_label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.id.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
     <div className="space-y-6 pb-12">
-      
       {/* Header */}
       <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0d1626] to-slate-900 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -57,7 +79,8 @@ export const CallMonitorPage: React.FC = () => {
             Monitored Voice Calls & Streams
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-xl">
-            Inspect call timelines, chunk-by-chunk deepfake probability evolution, and flagged scam transcripts.
+            Inspect call timelines, chunk-by-chunk deepfake probability
+            evolution, and flagged scam transcripts.
           </p>
         </div>
 
@@ -89,33 +112,47 @@ export const CallMonitorPage: React.FC = () => {
           </button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
             {/* Left: Call Profile */}
             <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
               <div className="flex items-start justify-between pb-3 border-b border-slate-800">
                 <div>
-                  <h3 className="text-lg font-bold font-display text-white">{callDetail.call.caller_label}</h3>
-                  <span className="text-xs font-mono text-slate-400">ID: {callDetail.call.id}</span>
+                  <h3 className="text-lg font-bold font-display text-white">
+                    {callDetail.call.caller_label}
+                  </h3>
+                  <span className="text-xs font-mono text-slate-400">
+                    ID: {callDetail.call.id}
+                  </span>
                 </div>
-                <RiskBadge level={callDetail.call.risk_level} score={callDetail.call.overall_risk} />
+                <RiskBadge
+                  level={callDetail.call.risk_level}
+                  score={callDetail.call.overall_risk}
+                />
               </div>
 
               <div className="space-y-2.5 text-xs">
                 <div className="flex justify-between p-2 rounded-lg bg-slate-950/40">
                   <span className="text-slate-400">Started At:</span>
-                  <span className="font-mono text-slate-200">{callDetail.call.started_at}</span>
+                  <span className="font-mono text-slate-200">
+                    {callDetail.call.started_at}
+                  </span>
                 </div>
                 <div className="flex justify-between p-2 rounded-lg bg-slate-950/40">
                   <span className="text-slate-400">Duration:</span>
-                  <span className="font-mono text-slate-200">{callDetail.call.duration_sec.toFixed(1)} seconds</span>
+                  <span className="font-mono text-slate-200">
+                    {callDetail.call.duration_sec.toFixed(1)} seconds
+                  </span>
                 </div>
                 <div className="flex justify-between p-2 rounded-lg bg-slate-950/40">
                   <span className="text-slate-400">Classification:</span>
-                  <RiskBadge classification={callDetail.call.overall_classification} />
+                  <RiskBadge
+                    classification={callDetail.call.overall_classification}
+                  />
                 </div>
                 <div className="flex justify-between p-2 rounded-lg bg-slate-950/40">
                   <span className="text-slate-400">Status:</span>
-                  <span className="font-bold text-cyan-400">{callDetail.call.status}</span>
+                  <span className="font-bold text-cyan-400">
+                    {callDetail.call.status}
+                  </span>
                 </div>
               </div>
 
@@ -134,7 +171,8 @@ export const CallMonitorPage: React.FC = () => {
               {/* PDF Report Download */}
               <button
                 onClick={async () => {
-                  const targetId = callDetail.analyses[0]?.id || callDetail.call.id;
+                  const targetId =
+                    callDetail.analyses[0]?.id || callDetail.call.id;
                   try {
                     setIsDownloadingPdf(true);
                     await api.downloadReportPdf(targetId);
@@ -170,24 +208,46 @@ export const CallMonitorPage: React.FC = () => {
 
               <div className="space-y-3">
                 {callDetail.analyses.map((ana, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2"
+                  >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-200">Segment #{idx + 1} ({ana.audio_duration_sec.toFixed(1)}s)</span>
-                      <RiskBadge level={ana.risk.level} score={ana.risk.score} size="sm" />
+                      <span className="text-xs font-bold text-slate-200">
+                        Segment #{idx + 1} ({ana.audio_duration_sec.toFixed(1)}
+                        s)
+                      </span>
+                      <RiskBadge
+                        level={ana.risk.level}
+                        score={ana.risk.score}
+                        size="sm"
+                      />
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div className="p-2 rounded bg-slate-900/50">
-                        <span className="text-[10px] text-slate-400 block">AI Probability</span>
-                        <span className="font-mono font-bold text-rose-400">{(ana.prediction.ai_probability * 100).toFixed(1)}%</span>
+                        <span className="text-[10px] text-slate-400 block">
+                          AI Probability
+                        </span>
+                        <span className="font-mono font-bold text-rose-400">
+                          {(ana.prediction.ai_probability * 100).toFixed(1)}%
+                        </span>
                       </div>
                       <div className="p-2 rounded bg-slate-900/50">
-                        <span className="text-[10px] text-slate-400 block">Confidence</span>
-                        <span className="font-mono font-bold text-cyan-400">{(ana.prediction.confidence * 100).toFixed(1)}%</span>
+                        <span className="text-[10px] text-slate-400 block">
+                          Confidence
+                        </span>
+                        <span className="font-mono font-bold text-cyan-400">
+                          {(ana.prediction.confidence * 100).toFixed(1)}%
+                        </span>
                       </div>
                       <div className="p-2 rounded bg-slate-900/50">
-                        <span className="text-[10px] text-slate-400 block">Scam Context</span>
-                        <span className="font-mono font-bold text-amber-400">{(ana.scam_context.score * 100).toFixed(0)}/100</span>
+                        <span className="text-[10px] text-slate-400 block">
+                          Scam Context
+                        </span>
+                        <span className="font-mono font-bold text-amber-400">
+                          {(ana.scam_context.score * 100).toFixed(0)}/100
+                        </span>
                       </div>
                     </div>
 
@@ -200,14 +260,19 @@ export const CallMonitorPage: React.FC = () => {
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       ) : (
         /* Calls Table */
         <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
           {loading ? (
-            <div className="p-12 text-center text-xs font-mono text-cyan-400">Loading call records...</div>
+            <div className="p-12 text-center text-xs font-mono text-cyan-400">
+              Loading call records...
+            </div>
+          ) : error ? (
+            <div className="p-12 text-center text-xs font-mono text-rose-400">
+              {error}
+            </div>
           ) : filteredCalls.length === 0 ? (
             <div className="p-12 text-center text-xs font-mono text-slate-500">
               No calls matching filter.
@@ -228,13 +293,33 @@ export const CallMonitorPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
                   {filteredCalls.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="p-3 font-mono text-slate-400">{c.started_at ? c.started_at.replace('T', ' ').substring(0, 19) : '-'}</td>
-                      <td className="p-3 font-semibold text-slate-200">{c.caller_label}</td>
-                      <td className="p-3 font-mono text-slate-400">{c.duration_sec.toFixed(1)}s</td>
-                      <td className="p-3"><RiskBadge classification={c.overall_classification} /></td>
-                      <td className="p-3"><RiskBadge level={c.risk_level} score={c.overall_risk} /></td>
-                      <td className="p-3 font-mono font-bold text-cyan-400">{c.status}</td>
+                    <tr
+                      key={c.id}
+                      className="hover:bg-slate-800/30 transition-colors"
+                    >
+                      <td className="p-3 font-mono text-slate-400">
+                        {c.started_at
+                          ? c.started_at.replace("T", " ").substring(0, 19)
+                          : "-"}
+                      </td>
+                      <td className="p-3 font-semibold text-slate-200">
+                        {c.caller_label}
+                      </td>
+                      <td className="p-3 font-mono text-slate-400">
+                        {c.duration_sec.toFixed(1)}s
+                      </td>
+                      <td className="p-3">
+                        <RiskBadge classification={c.overall_classification} />
+                      </td>
+                      <td className="p-3">
+                        <RiskBadge
+                          level={c.risk_level}
+                          score={c.overall_risk}
+                        />
+                      </td>
+                      <td className="p-3 font-mono font-bold text-cyan-400">
+                        {c.status}
+                      </td>
                       <td className="p-3 text-right">
                         <button
                           onClick={() => openCallDetail(c.id)}
@@ -252,6 +337,11 @@ export const CallMonitorPage: React.FC = () => {
         </div>
       )}
 
+      {detailError && selectedCallId && !callDetail && (
+        <div className="p-12 text-center text-xs font-mono text-rose-400">
+          {detailError}
+        </div>
+      )}
     </div>
   );
 };

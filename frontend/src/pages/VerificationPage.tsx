@@ -1,26 +1,47 @@
-import React, { useState } from 'react';
-import { ShieldQuestion, CheckCircle2, XCircle, Send, KeyRound, Lock, UserCheck } from 'lucide-react';
-import { api } from '../services/api';
+import React, { useState } from "react";
+import {
+  ShieldQuestion,
+  CheckCircle2,
+  XCircle,
+  Send,
+  KeyRound,
+  Lock,
+  UserCheck,
+} from "lucide-react";
+import { api } from "../services/api";
 
 export const VerificationPage: React.FC = () => {
-  const [callerName, setCallerName] = useState('');
-  const [secretQuestion, setSecretQuestion] = useState('What is our family secret vacation keyword?');
-  const [expectedAnswer, setExpectedAnswer] = useState('');
+  const [callerName, setCallerName] = useState("");
+  const [secretQuestion, setSecretQuestion] = useState(
+    "What is our family secret vacation keyword?",
+  );
+  const [expectedAnswer, setExpectedAnswer] = useState("");
   const [activeChallenge, setActiveChallenge] = useState<any | null>(null);
-  const [answerInput, setAnswerInput] = useState('');
+  const [answerInput, setAnswerInput] = useState("");
   const [challengeResult, setChallengeResult] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreateChallenge = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setChallengeResult(null);
+    setError(null);
 
     try {
-      const challenge = await api.createVerification(undefined, callerName || 'Suspicious Caller', secretQuestion);
-      challenge.expected_answer = expectedAnswer || 'blue';
+      const challenge = await api.createVerification(
+        undefined,
+        callerName || "Suspicious Caller",
+        secretQuestion,
+      );
+      challenge.expected_answer = expectedAnswer || "blue";
       setActiveChallenge(challenge);
     } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to create verification challenge.",
+      );
       console.error(err);
     } finally {
       setLoading(false);
@@ -31,11 +52,20 @@ export const VerificationPage: React.FC = () => {
     e.preventDefault();
     if (!activeChallenge) return;
     setLoading(true);
+    setError(null);
 
     try {
-      const res = await api.submitVerificationAnswer(activeChallenge.verification_id, answerInput);
+      const res = await api.submitVerificationAnswer(
+        activeChallenge.verification_id,
+        answerInput,
+      );
       setChallengeResult(res);
     } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to submit verification response.",
+      );
       console.error(err);
     } finally {
       setLoading(false);
@@ -44,7 +74,6 @@ export const VerificationPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      
       {/* Header Banner */}
       <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0d1626] to-slate-900 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
@@ -56,13 +85,16 @@ export const VerificationPage: React.FC = () => {
             Caller Identity Challenge & Verification Hub
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-xl">
-            When high synthetic voice probability is detected, execute challenge-response verification before authorizing any financial or sensitive actions.
+            When high synthetic voice probability is detected, execute
+            challenge-response verification before authorizing any financial or
+            sensitive actions.
           </p>
         </div>
       </div>
 
+      {error && <div className="text-sm font-mono text-rose-400">{error}</div>}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         {/* Left: Dispatch Challenge */}
         <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
           <h3 className="text-base font-bold font-display text-white flex items-center gap-2">
@@ -133,23 +165,34 @@ export const VerificationPage: React.FC = () => {
 
           {!activeChallenge ? (
             <div className="p-12 text-center text-xs font-mono text-slate-500 rounded-xl bg-slate-950/40 border border-slate-800/80">
-              No active challenge ticket. Dispatch a challenge from the left form.
+              No active challenge ticket. Dispatch a challenge from the left
+              form.
             </div>
           ) : (
             <div className="p-5 rounded-xl bg-slate-950/70 border border-cyan-500/30 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div>
-                  <span className="text-xs font-bold text-white block">{activeChallenge.caller_name}</span>
-                  <span className="text-[10px] font-mono text-slate-400">{activeChallenge.verification_id}</span>
+                  <span className="text-xs font-bold text-white block">
+                    {activeChallenge.caller_name}
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {activeChallenge.verification_id}
+                  </span>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-bold font-mono ${challengeResult?.status === 'PASSED' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : challengeResult?.status === 'FAILED' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}`}>
+                <span
+                  className={`px-2.5 py-1 rounded-full text-xs font-bold font-mono ${challengeResult?.status === "PASSED" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : challengeResult?.status === "FAILED" ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "bg-amber-500/20 text-amber-300 border border-amber-500/40"}`}
+                >
                   {challengeResult?.status || activeChallenge.status}
                 </span>
               </div>
 
               <div className="p-3 rounded-lg bg-slate-900/80 text-xs">
-                <span className="text-slate-400 block mb-1">Challenge Question:</span>
-                <span className="font-semibold text-cyan-300">"{activeChallenge.question}"</span>
+                <span className="text-slate-400 block mb-1">
+                  Challenge Question:
+                </span>
+                <span className="font-semibold text-cyan-300">
+                  "{activeChallenge.question}"
+                </span>
               </div>
 
               {/* Answering Form */}
@@ -176,10 +219,20 @@ export const VerificationPage: React.FC = () => {
                   </div>
                 </form>
               ) : (
-                <div className={`p-4 rounded-xl border space-y-1.5 ${challengeResult.status === 'PASSED' ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-300' : 'bg-rose-500/15 border-rose-500/35 text-rose-300'}`}>
+                <div
+                  className={`p-4 rounded-xl border space-y-1.5 ${challengeResult.status === "PASSED" ? "bg-emerald-500/15 border-emerald-500/35 text-emerald-300" : "bg-rose-500/15 border-rose-500/35 text-rose-300"}`}
+                >
                   <div className="flex items-center gap-2 font-bold text-xs">
-                    {challengeResult.status === 'PASSED' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                    <span>{challengeResult.status === 'PASSED' ? 'IDENTITY VERIFIED' : 'CHALLENGE FAILED — SUSPICIOUS CALLER'}</span>
+                    {challengeResult.status === "PASSED" ? (
+                      <CheckCircle2 className="w-4 h-4" />
+                    ) : (
+                      <XCircle className="w-4 h-4" />
+                    )}
+                    <span>
+                      {challengeResult.status === "PASSED"
+                        ? "IDENTITY VERIFIED"
+                        : "CHALLENGE FAILED — SUSPICIOUS CALLER"}
+                    </span>
                   </div>
                   <p className="text-xs">{challengeResult.result_message}</p>
                 </div>
@@ -194,16 +247,22 @@ export const VerificationPage: React.FC = () => {
               Standard Safety Directives:
             </h4>
             <ul className="text-[11px] text-slate-400 space-y-1 list-disc list-inside">
-              <li>Do NOT treat voice pitch or caller ID as standalone identity proof.</li>
-              <li>Do NOT authorize wire transfers or bank transfers over phone calls.</li>
-              <li>Always call back the individual using a saved, verified telephone number.</li>
+              <li>
+                Do NOT treat voice pitch or caller ID as standalone identity
+                proof.
+              </li>
+              <li>
+                Do NOT authorize wire transfers or bank transfers over phone
+                calls.
+              </li>
+              <li>
+                Always call back the individual using a saved, verified
+                telephone number.
+              </li>
             </ul>
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 };
