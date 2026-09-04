@@ -12,6 +12,7 @@ import os
 import json
 import time
 import logging
+import threading
 from typing import Dict, Any, Optional, Tuple, Union
 import numpy as np
 import torch
@@ -58,6 +59,16 @@ class ModelManager:
         self.model_metadata: Dict[str, Any] = {}
         self.active_version: str = "1.0"
         self.preprocessor = AudioPreprocessor()
+        self._inference_lock = threading.Lock()
+
+        # Render's CPU containers have limited memory. Restricting PyTorch's
+        # worker pools prevents concurrent inference from multiplying buffers.
+        if self.device.type == "cpu":
+            torch.set_num_threads(1)
+            try:
+                torch.set_num_interop_threads(1)
+            except RuntimeError:
+                pass
 
         # Calibration parameters
         self.classification_threshold: float = 0.50
@@ -172,7 +183,7 @@ class ModelManager:
 
         waveform = waveform.to(self.device)
 
-        with torch.no_grad():
+        with self._inference_lock, torch.no_grad():
             logits = self.model(waveform)
             probs = torch.softmax(logits, dim=-1).squeeze(0).cpu().numpy()
 
