@@ -22,14 +22,15 @@ class InferenceService:
     """
 
     def __init__(self, preprocessor: Optional[AudioPreprocessor] = None):
-        self.preprocessor = preprocessor or AudioPreprocessor()
+        # Keep request-time activations bounded on small production CPU instances.
+        self.preprocessor = preprocessor or AudioPreprocessor(target_duration_sec=1.0)
         self.model_manager = get_model_manager()
 
     def analyze_audio_stream(
         self,
         audio_source: Union[str, bytes, io.BytesIO, np.ndarray],
-        chunk_size_sec: float = 4.0375,
-        hop_size_sec: float = 2.0,
+        chunk_size_sec: float = 1.0,
+        hop_size_sec: float = 1.0,
     ) -> Dict[str, Any]:
         """
         Processes full audio file with multi-chunk sliding window analysis.

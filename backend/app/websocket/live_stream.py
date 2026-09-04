@@ -21,7 +21,7 @@ from backend.app.services.explainability_service import ExplainabilityService
 logger = logging.getLogger("voiceshield.websocket")
 router = APIRouter(tags=["Real-Time Streaming"])
 
-preprocessor = AudioPreprocessor()
+preprocessor = AudioPreprocessor(target_duration_sec=1.0)
 risk_engine = RiskEngine()
 scam_service = ScamContextService()
 explain_service = ExplainabilityService()
